@@ -141,7 +141,6 @@ else
   endif
 endif
 
-PROD_LIBS += $(EPICS_BASE_HOST_LIBS)
 
 gateway_SRCS += gateway.cc
 gateway_SRCS += gatePv.cc
@@ -160,15 +159,19 @@ USR_INCLUDES += -I$(EPICS_BASE)/src/ca/legacy/pcas/generic
 # To compile in caPutLog functionality, define the location of the caPutLog
 # module as 'CAPUTLOG' in the appropriate extensions configure/RELEASE* file
 ifdef CAPUTLOG
-  USR_LIBS += caPutLog
+  PROD_LIBS += caPutLog
 ifeq ($(BASE_3_14),YES)
-  USR_LIBS += dbIoc
+  PROD_LIBS += dbIoc
+else
+  PROD_LIBS += dbCore
 endif
   USR_CXXFLAGS += -DWITH_CAPUTLOG
   USR_CFLAGS += -DWITH_CAPUTLOG
 endif
 
 PROD_HOST = gateway
+#PROD_LIBS += cas gdd
+PROD_LIBS += $(EPICS_BASE_HOST_LIBS)
 
 include $(TOP)/configure/RULES
 
