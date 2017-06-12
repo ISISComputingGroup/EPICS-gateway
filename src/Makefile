@@ -36,6 +36,8 @@ ifeq ($(OS_CLASS),WIN32)
 
 endif
 
+REGEX_DIR = $(EPICS_KIT_ROOT)/extensions/master
+
 # Negative regexp matching: !pattern matches when pattern does not match
 #USE_NEG_REGEXP=YES
 
@@ -158,7 +160,10 @@ USR_INCLUDES += -I$(EPICS_BASE)/src/ca/legacy/pcas/generic
 # To compile in caPutLog functionality, define the location of the caPutLog
 # module as 'CAPUTLOG' in the appropriate extensions configure/RELEASE* file
 ifdef CAPUTLOG
-  USR_LIBS += caPutLog dbIoc
+  USR_LIBS += caPutLog
+ifeq ($(BASE_3_14),YES)
+  USR_LIBS += dbIoc
+endif
   USR_CXXFLAGS += -DWITH_CAPUTLOG
   USR_CFLAGS += -DWITH_CAPUTLOG
 endif

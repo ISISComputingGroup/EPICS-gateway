@@ -7,7 +7,7 @@ DIRS := configure
 DIRS += src
 src_DEPEND_DIRS = configure
 
-EMBEDDED_TOPS := $(wildcard *Top)
+#EMBEDDED_TOPS := $(wildcard *Top)
 
 DIRS += $(EMBEDDED_TOPS)
 
