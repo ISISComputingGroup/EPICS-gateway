@@ -62,7 +62,8 @@ record(waveform, "ioc:passivewaveform") {
 
 record(ai, "ioc:gwcachetest") {
   field(PREC, "3")
-  field(EGU, "wobbles")
+#  field(EGU, "wobbles")
+  field(EGU, "")
   field(HIGH, "10")
   field(HIHI, "100")
   field(HSV , "MINOR")
