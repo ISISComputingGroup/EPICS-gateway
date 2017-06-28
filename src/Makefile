@@ -169,6 +169,8 @@ endif
   USR_CFLAGS += -DWITH_CAPUTLOG
 endif
 
+USR_SYS_LIBS_WIN32 += user32
+
 PROD_HOST = gateway
 #PROD_LIBS += cas gdd
 PROD_LIBS += $(EPICS_BASE_HOST_LIBS)

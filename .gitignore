@@ -13,3 +13,5 @@ QtC-*
 # Gateway generated scriptlets
 gateway.killer
 gateway.restart
+
+dllPath.bat

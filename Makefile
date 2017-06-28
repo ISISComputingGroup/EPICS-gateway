@@ -4,8 +4,9 @@ include $(TOP)/configure/CONFIG
 
 DIRS := configure
 
-DIRS += src
+DIRS += src run
 src_DEPEND_DIRS = configure
+run_DEPEND_DIRS = src
 
 #EMBEDDED_TOPS := $(wildcard *Top)
 
