@@ -83,9 +83,6 @@ else
   endif
 endif
 
-PROD_LIBS += cas gdd
-PROD_LIBS += $(EPICS_BASE_HOST_LIBS)
-
 gateway_SRCS += gateway.cc
 gateway_SRCS += gatePv.cc
 gateway_SRCS += gateResources.cc
@@ -112,6 +109,8 @@ endif
   USR_CXXFLAGS += -DWITH_CAPUTLOG
   USR_CFLAGS += -DWITH_CAPUTLOG
 endif
+USR_LIBS += cas gdd
+USR_LIBS += $(EPICS_BASE_HOST_LIBS)
 
 USR_SYS_LIBS_WIN32 += user32
 
