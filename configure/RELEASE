@@ -1,7 +1,5 @@
 CAPUTLOG=$(SUPPORT)/caPutLog/master
-
-# optional extra local definitions here
--include $(TOP)/configure/RELEASE.private
+PCAS=$(SUPPORT)/pcas/master
 
 include $(TOP)/../../../ISIS_CONFIG
 -include $(TOP)/../../../ISIS_CONFIG.$(EPICS_HOST_ARCH)

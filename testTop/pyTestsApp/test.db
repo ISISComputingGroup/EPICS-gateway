@@ -74,4 +74,8 @@ record(ai, "ioc:gwcachetest") {
   field(LLSV , "MAJOR")
 }
 
-
+record(mbbi, "ioc:enumtest") {
+  field(ZRST, "zero")
+  field(ONST, "one")
+  field(TWST, "two")
+}
