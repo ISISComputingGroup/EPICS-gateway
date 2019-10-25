@@ -6,7 +6,7 @@
 * Copyright (c) 2002 The Regents of the University of California, as
 * Operator of Los Alamos National Laboratory.
 * This file is distributed subject to a Software License Agreement found
-* in the file LICENSE that is included with this distribution. 
+* in the file LICENSE that is included with this distribution.
 \*************************************************************************/
 // Author: Jim Kowalkowski
 // Date: 2/96
@@ -60,11 +60,11 @@ char *timeStamp(void)
 	static char timeStampStr[20];
 	time_t now;
 	struct tm *tblock;
-	
+
 	time(&now);
 	tblock=localtime(&now);
 	strftime(timeStampStr,sizeof(timeStampStr),"%b %d %H:%M:%S",tblock);
-	
+
 	return timeStampStr;
 }
 
@@ -202,6 +202,24 @@ static int gddToVALUE(const gdd *gddVal, short ourdbrtype, VALUE *valueStruct)
         }
         return(0);
 
+#ifdef DBR_INT64
+    case OUR_DBR_INT64: {
+          aitInt64 x;
+          gddVal->get(x);
+          valueStruct->v_int64 = x;
+        }
+        return(0);
+#endif
+
+#ifdef DBR_UINT64
+    case OUR_DBR_UINT64: {
+          aitUint64 x;
+          gddVal->get(x);
+          valueStruct->v_uint64 = x;
+        }
+        return(0);
+#endif
+
     case OUR_DBR_FLOAT: {
           aitFloat32 x;
           gddVal->get(x);
@@ -233,26 +251,27 @@ static int gddToVALUE(const gdd *gddVal, short ourdbrtype, VALUE *valueStruct)
   }
 }
 
+#if 0
 static char *debugVALUEString(VALUE *v, int ourdbrtype, char *buffer)
 {
   switch (ourdbrtype) {
     case OUR_DBR_CHAR:
-      sprintf(buffer,"v_char %d",v->v_int8);
+      sprintf(buffer,"v_int8 %d",v->v_int8);
       break;
     case OUR_DBR_UCHAR:
-      sprintf(buffer,"v_uchar %d",v->v_uint8);
+      sprintf(buffer,"v_uint8 %d",v->v_uint8);
       break;
     case OUR_DBR_SHORT:
-      sprintf(buffer,"v_short %hd",v->v_int16);
+      sprintf(buffer,"v_int16 %hd",v->v_int16);
       break;
     case OUR_DBR_USHORT:
-      sprintf(buffer,"v_ushort %hu",v->v_uint16);
+      sprintf(buffer,"v_uint16 %hu",v->v_uint16);
       break;
     case OUR_DBR_LONG:
-      sprintf(buffer,"v_long %d",v->v_int32);
+      sprintf(buffer,"v_int32 %d",v->v_int32);
       break;
     case OUR_DBR_ULONG:
-      sprintf(buffer,"v_ulong %u",v->v_uint32);
+      sprintf(buffer,"v_uint32 %u",v->v_uint32);
       break;
     case OUR_DBR_FLOAT:
       sprintf(buffer,"v_float %g",v->v_float);
@@ -268,6 +287,7 @@ static char *debugVALUEString(VALUE *v, int ourdbrtype, char *buffer)
   }
   return(buffer);
 }
+#endif
 
 #endif // WITH_CAPUTLOG
 
@@ -278,19 +298,19 @@ gateResources::gateResources(void)
       access_file=strDup(GATE_PV_ACCESS_FILE);
     else
       access_file=NULL;
-    
+
     if(access(GATE_PV_LIST_FILE,F_OK)==0)
       pvlist_file=strDup(GATE_PV_LIST_FILE);
     else
       pvlist_file=NULL;
-    
+
     if(access(GATE_COMMAND_FILE,F_OK)==0)
       command_file=strDup(GATE_COMMAND_FILE);
     else
       command_file=NULL;
-      
-      
-    
+
+
+
 	// Miscellaneous initializations
 	putlog_file=NULL;
 #ifdef WITH_CAPUTLOG
@@ -301,21 +321,18 @@ gateResources::gateResources(void)
     debug_level=0;
     ro=0;
 	serverMode=false;
-#ifdef RESERVE_FOPEN_FD
-	reserveFp = NULL;
-#endif
-    
+
     setEventMask(DBE_VALUE | DBE_ALARM);
     setConnectTimeout(GATE_CONNECT_TIMEOUT);
     setInactiveTimeout(GATE_INACTIVE_TIMEOUT);
     setDeadTimeout(GATE_DEAD_TIMEOUT);
     setDisconnectTimeout(GATE_DISCONNECT_TIMEOUT);
     setReconnectInhibit(GATE_RECONNECT_INHIBIT);
-    
+
     gddApplicationTypeTable& tt = gddApplicationTypeTable::AppTable();
-    
+
 	gddMakeMapDBR(tt);
-	
+
 	appValue=tt.getApplicationType("value");
 	appUnits=tt.getApplicationType("units");
 	appEnum=tt.getApplicationType("enums");
@@ -431,6 +448,41 @@ void gateResources::caPutLog_Send
   }
   caPutLogTaskSend(pdata);
 }
+
+void gateResources::putLog(
+       FILE            *       fp,
+       const char      *       user,
+       const char      *       host,
+       const char      *       pvname,
+       const gdd       *       old_value,
+       const gdd       *       new_value       )
+{
+       if(fp) {
+               VALUE   oldVal,                 newVal;
+               char    acOldVal[20],   acNewVal[20];
+               if ( old_value == NULL )
+               {
+                       acOldVal[0] = '?';
+                       acOldVal[1] = '\0';
+               }
+               else
+               {
+                       gddToVALUE( old_value, gddGetOurType(old_value), &oldVal );
+                       VALUE_to_string( acOldVal, 20, &oldVal, gddGetOurType(old_value) );
+               }
+               gddToVALUE( new_value, gddGetOurType(new_value), &newVal );
+               VALUE_to_string( acNewVal, 20, &newVal, gddGetOurType(new_value) );
+               fprintf(fp,"%s %s@%s %s %s old=%s\n",
+                 timeStamp(),
+                 user?user:"Unknown",
+                 host?host:"Unknown",
+                 pvname,
+                 acNewVal,
+                 acOldVal );
+               fflush(fp);
+       }
+}
+
 #endif // WITH_CAPUTLOG
 
 int gateResources::setReportFile(const char* file)
@@ -451,46 +503,6 @@ int gateResources::setUpAccessSecurity(void)
 	as=new gateAs(pvlist_file,access_file);
 	return 0;
 }
-
-#ifdef RESERVE_FOPEN_FD
-// Functions to try to reserve a file descriptor to use for fopen.  On
-// Solaris, at least, fopen is limited to FDs < 256.  These could all
-// be used by CA and CAS sockets if there are connections to enough
-// IOCs  These functions try to reserve a FD < 256.
-FILE *gateResources::fopen(const char *filename, const char *mode)
-{
-	// Close the dummy file holding the FD open
-    if(reserveFp) ::fclose(reserveFp);
-    reserveFp=NULL;
-	
-	// Open the file.  It should use the lowest available FD, that is,
-	// the one we just made available.
-    FILE *fp=::fopen(filename,mode);
-    if(!fp) {
-		// Try to get the reserved one back
-		reserveFp=::fopen(GATE_RESERVE_FILE,"w");
-    }
-	
-    return fp;
-}
-
-int gateResources::fclose(FILE *stream)
-{
-	// Close the file
-    int ret=::fclose(stream);
-	
-	// Open the dummy file to reserve the FD just made available
-    reserveFp=::fopen(GATE_RESERVE_FILE,"w");
-	
-    return ret;
-}
-
-FILE *gateResources::openReserveFile(void)
-{
-    reserveFp=::fopen(GATE_RESERVE_FILE,"w");
-    return reserveFp;
-}
-#endif
 
 gateAs* gateResources::getAs(void)
 {
