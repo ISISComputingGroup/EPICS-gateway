@@ -103,8 +103,7 @@ char *getComputerName(void)
 		// Convert to lowercase and copy
 		// OK for ANSI.  Won't work for Unicode w/o conversion.
 		char *pChar=computerName;
-		while (*pChar)
-		{
+		while (*pChar) {
 			*pChar = tolower(*pChar);
 			++pChar;
 		}
@@ -184,22 +183,17 @@ static int gddToVALUE(const gdd *gddVal, short dbfld_dbrtype, VALUE *valueStruct
    } else { // DBFLD::D_STRING and unknown
           aitString x;
           gddVal->get(x);
-          size_t len = strlen(x);
           size_t siz = sizeof(valueStruct->v_string);
-          if (len >= siz) {
-            strncpy(valueStruct->v_string,x,siz-1);
-            valueStruct->v_string[siz-1] = 0;
-          } else {
-            strcpy(valueStruct->v_string,x);
-          }
+          strncpy(valueStruct->v_string,x,siz);
+          valueStruct->v_string[siz-1] = 0;
    }
    return(0);
 }
 
 /*
- * val_to_string(): convert VALUE to string
+ * VALUE_to_string(): convert VALUE to string
  */
-static int val_to_string(char *pbuf, size_t buflen, const VALUE *pval, short dbfld_dbrtype, bool prefix_with_type = false)
+static int VALUE_to_string(char *pbuf, size_t buflen, const VALUE *pval, short dbfld_dbrtype, bool prefix_with_type = false)
 {
 	if (dbfld_dbrtype == DBFLD::D_CHAR) {
        /* CHAR and UCHAR are typically used as SHORTSHORT,
@@ -224,7 +218,7 @@ static int val_to_string(char *pbuf, size_t buflen, const VALUE *pval, short dbf
         return epicsSnprintf(pbuf, buflen, "%s%s", (prefix_with_type ? "v_string " : ""), pval->v_string);
 	} else {
 		char type[32];
-		epicsSnprintf(type, sizeof(type), "unknown %d ", dbfld_dbrtype);		
+		epicsSnprintf(type, sizeof(type), "unknown type %d ", dbfld_dbrtype);
         return epicsSnprintf(pbuf, buflen, "%s%s", (prefix_with_type ? type : ""), pval->v_string);
     }
 }
@@ -232,7 +226,7 @@ static int val_to_string(char *pbuf, size_t buflen, const VALUE *pval, short dbf
 #if 0
 static char *debugVALUEString(const VALUE *v, int dbfld_dbrtype, char *buffer, size_t buflen)
 {
-	val_to_string(buffer, buflen, v, dbfld_dbrtype, true);
+	VALUE_to_string(buffer, buflen, v, dbfld_dbrtype, true);
 	return buffer;
 }
 #endif
@@ -416,10 +410,10 @@ void gateResources::putLog(
                else
                {
                        gddToVALUE( old_value, gddGetOurType(old_value), &oldVal );
-                       val_to_string( acOldVal, 20, &oldVal, gddGetOurType(old_value) );
+                       VALUE_to_string( acOldVal, 20, &oldVal, gddGetOurType(old_value) );
                }
                gddToVALUE( new_value, gddGetOurType(new_value), &newVal );
-               val_to_string( acNewVal, 20, &newVal, gddGetOurType(new_value) );
+               VALUE_to_string( acNewVal, 20, &newVal, gddGetOurType(new_value) );
                fprintf(fp,"%s %s@%s %s %s old=%s\n",
                  timeStamp(),
                  user?user:"Unknown",
