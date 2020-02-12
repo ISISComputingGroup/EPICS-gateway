@@ -6,7 +6,7 @@
 * Copyright (c) 2002 The Regents of the University of California, as
 * Operator of Los Alamos National Laboratory.
 * This file is distributed subject to a Software License Agreement found
-* in the file LICENSE that is included with this distribution. 
+* in the file LICENSE that is included with this distribution.
 \*************************************************************************/
 // Author: Jim Kowalkowski
 // Date: 2/96
@@ -35,9 +35,12 @@
 #endif
 
 #include "cadef.h"
+#include "epicsStdio.h"
 
 #include "gateResources.h"
 #include "gateAs.h"
+#include "gateDbFld.h"
+
 #include <gddAppTable.h>
 #include <dbMapper.h>
 
@@ -60,11 +63,11 @@ char *timeStamp(void)
 	static char timeStampStr[20];
 	time_t now;
 	struct tm *tblock;
-	
+
 	time(&now);
 	tblock=localtime(&now);
 	strftime(timeStampStr,sizeof(timeStampStr),"%b %d %H:%M:%S",tblock);
-	
+
 	return timeStampStr;
 }
 
@@ -100,8 +103,7 @@ char *getComputerName(void)
 		// Convert to lowercase and copy
 		// OK for ANSI.  Won't work for Unicode w/o conversion.
 		char *pChar=computerName;
-		while (*pChar)
-		{
+		while (*pChar) {
 			*pChar = tolower(*pChar);
 			++pChar;
 		}
@@ -119,155 +121,115 @@ char *getComputerName(void)
 }
 
 #ifdef WITH_CAPUTLOG
-/*
-  We need to define these here, as caPutLog is using dbFldTypes.h defs for
-  DBR_xxx and our code is loading db_access.h defs elsewhere, and thse ARE
-  DIFFERENT.
 
-  DBR_FLOAT in db_access.h is 6, for example but in dbFldTypes.h that means a
-  DBR_ULONG.
-*/
-#define OUR_DBR_STRING   0
-#define OUR_DBR_CHAR     1
-#define OUR_DBR_UCHAR    2
-#define OUR_DBR_SHORT    3
-#define OUR_DBR_USHORT   4
-#define OUR_DBR_LONG     5
-#define OUR_DBR_ULONG    6
-#define OUR_DBR_FLOAT    7
-#define OUR_DBR_DOUBLE   8
+// caPutLog uses dbFldTypes.h whereas elsewhere in the gateway uses  db_access.h
+// and the DBR_xxx codes ARE DIFFERENT. We access the dbFldTypes numbers here via
+// a mapping in DBFLD:: to avoid clash with db_access.h definitions
 
 static int gddGetOurType(const gdd *gddVal)
 {
   switch ( gddVal->primitiveType() ) {
-    case aitEnumInt8    : return(OUR_DBR_CHAR);
-    case aitEnumUint8   : return(OUR_DBR_UCHAR);
-    case aitEnumInt16   : return(OUR_DBR_SHORT);
-    case aitEnumEnum16  : return(OUR_DBR_USHORT);
-    case aitEnumUint16  : return(OUR_DBR_USHORT);
-    case aitEnumInt32   : return(OUR_DBR_LONG);
-    case aitEnumUint32  : return(OUR_DBR_ULONG);
-    case aitEnumFloat32 : return(OUR_DBR_FLOAT);
-    case aitEnumFloat64 : return(OUR_DBR_DOUBLE);
+    case aitEnumInt8    : return(DBFLD::D_CHAR);
+    case aitEnumUint8   : return(DBFLD::D_UCHAR);
+    case aitEnumInt16   : return(DBFLD::D_SHORT);
+    case aitEnumEnum16  : return(DBFLD::D_USHORT);
+    case aitEnumUint16  : return(DBFLD::D_USHORT);
+    case aitEnumInt32   : return(DBFLD::D_LONG);
+    case aitEnumUint32  : return(DBFLD::D_ULONG);
+    case aitEnumFloat32 : return(DBFLD::D_FLOAT);
+    case aitEnumFloat64 : return(DBFLD::D_DOUBLE);
     case aitEnumFixedString:
     case aitEnumString:
     default:
-      return(OUR_DBR_STRING);
+      return(DBFLD::D_STRING);
   }
 }
 
-static int gddToVALUE(const gdd *gddVal, short ourdbrtype, VALUE *valueStruct)
+static int gddToVALUE(const gdd *gddVal, short dbfld_dbrtype, VALUE *valueStruct)
 {
   memset(valueStruct,0,sizeof(VALUE));
-  switch (ourdbrtype) {
-    case OUR_DBR_CHAR: {
+  if (dbfld_dbrtype == DBFLD::D_CHAR) {
           aitInt8 x;
           gddVal->get(x);
           valueStruct->v_int8 = x;
-        }
-        return(0);
-
-    case OUR_DBR_UCHAR: {
+   } else if (dbfld_dbrtype == DBFLD::D_UCHAR) {
           aitUint8 x;
           gddVal->get(x);
           valueStruct->v_uint8 = x;
-        }
-        return(0);
-
-    case OUR_DBR_SHORT: {
+   } else if (dbfld_dbrtype == DBFLD::D_SHORT) {
           aitInt16 x;
           gddVal->get(x);
           valueStruct->v_int16 = x;
-        }
-        return(0);
-
-    case OUR_DBR_USHORT: {
+   } else if (dbfld_dbrtype == DBFLD::D_USHORT) {
           aitUint16 x;
           gddVal->get(x);
           valueStruct->v_uint16 = x;
-        }
-        return(0);
-
-    case OUR_DBR_LONG: {
+   } else if (dbfld_dbrtype == DBFLD::D_LONG) {
           aitInt32 x;
           gddVal->get(x);
           valueStruct->v_int32 = x;
-        }
-        return(0);
-
-    case OUR_DBR_ULONG: {
+   } else if (dbfld_dbrtype == DBFLD::D_ULONG) {
           aitUint32 x;
           gddVal->get(x);
           valueStruct->v_uint32 = x;
-        }
-        return(0);
-
-    case OUR_DBR_FLOAT: {
+   } else if (dbfld_dbrtype == DBFLD::D_FLOAT) {
           aitFloat32 x;
           gddVal->get(x);
           valueStruct->v_float = x;
-        }
-        return(0);
-
-    case OUR_DBR_DOUBLE: {
+   } else if (dbfld_dbrtype == DBFLD::D_DOUBLE) {
           aitFloat64 x;
           gddVal->get(x);
           valueStruct->v_double = x;
-        }
-        return(0);
-
-    case OUR_DBR_STRING:
-    default: {
+   } else { // DBFLD::D_STRING and unknown
           aitString x;
           gddVal->get(x);
-          int len = strlen(x);
-          int siz = sizeof(valueStruct->v_string);
-          if (len >= siz) {
-            strncpy(valueStruct->v_string,x,siz-1);
-            valueStruct->v_string[siz-1] = 0;
-          } else {
-            strcpy(valueStruct->v_string,x);
-          }
-          return(0);
-        }
-  }
+          size_t siz = sizeof(valueStruct->v_string);
+          strncpy(valueStruct->v_string,x,siz);
+          valueStruct->v_string[siz-1] = 0;
+   }
+   return(0);
 }
 
-static char *debugVALUEString(VALUE *v, int ourdbrtype, char *buffer)
+/*
+ * VALUE_to_string(): convert VALUE to string
+ */
+static int VALUE_to_string(char *pbuf, size_t buflen, const VALUE *pval, short dbfld_dbrtype, bool prefix_with_type = false)
 {
-  switch (ourdbrtype) {
-    case OUR_DBR_CHAR:
-      sprintf(buffer,"v_char %d",v->v_int8);
-      break;
-    case OUR_DBR_UCHAR:
-      sprintf(buffer,"v_uchar %d",v->v_uint8);
-      break;
-    case OUR_DBR_SHORT:
-      sprintf(buffer,"v_short %hd",v->v_int16);
-      break;
-    case OUR_DBR_USHORT:
-      sprintf(buffer,"v_ushort %hu",v->v_uint16);
-      break;
-    case OUR_DBR_LONG:
-      sprintf(buffer,"v_long %d",v->v_int32);
-      break;
-    case OUR_DBR_ULONG:
-      sprintf(buffer,"v_ulong %u",v->v_uint32);
-      break;
-    case OUR_DBR_FLOAT:
-      sprintf(buffer,"v_float %g",v->v_float);
-      break;
-    case OUR_DBR_DOUBLE:
-      sprintf(buffer,"v_double %g",v->v_double);
-      break;
-    case OUR_DBR_STRING:
-      sprintf(buffer,"v_string '%s'",v->v_string);
-      break;
-    default:
-      sprintf(buffer,"unknown type %d",ourdbrtype);
-  }
-  return(buffer);
+	if (dbfld_dbrtype == DBFLD::D_CHAR) {
+       /* CHAR and UCHAR are typically used as SHORTSHORT,
+	    * so avoid mounting NULL-bytes into the string
+	    */
+        return epicsSnprintf(pbuf, buflen, "%s%d", (prefix_with_type ? "v_int8 " : ""), (int)pval->v_uint8);
+	} else if (dbfld_dbrtype == DBFLD::D_UCHAR) {
+        return epicsSnprintf(pbuf, buflen, "%s%d", (prefix_with_type ? "v_uint8 " : ""), (int)pval->v_uint8);
+	} else if (dbfld_dbrtype == DBFLD::D_SHORT) {
+        return epicsSnprintf(pbuf, buflen, "%s%hd", (prefix_with_type ? "v_int16 " : ""), pval->v_int16);
+	} else if (dbfld_dbrtype == DBFLD::D_USHORT || dbfld_dbrtype == DBFLD::D_ENUM) {
+        return epicsSnprintf(pbuf, buflen, "%s%hu", (prefix_with_type ? "v_uint16 " : ""), pval->v_uint16);
+	} else if (dbfld_dbrtype == DBFLD::D_LONG) {
+        return epicsSnprintf(pbuf, buflen, "%s%ld", (prefix_with_type ? "v_int32 " : ""), (long)pval->v_int32);
+	} else if (dbfld_dbrtype == DBFLD::D_ULONG) {
+        return epicsSnprintf(pbuf, buflen, "%s%lu", (prefix_with_type ? "v_uint32 " : ""), (unsigned long)pval->v_uint32);
+	} else if (dbfld_dbrtype == DBFLD::D_FLOAT) {
+        return epicsSnprintf(pbuf, buflen, "%s%g", (prefix_with_type ? "v_float " : ""), pval->v_float);
+	} else if (dbfld_dbrtype == DBFLD::D_DOUBLE) {
+        return epicsSnprintf(pbuf, buflen, "%s%g", (prefix_with_type ? "v_double " : ""), pval->v_double);
+	} else if (dbfld_dbrtype == DBFLD::D_STRING) {
+        return epicsSnprintf(pbuf, buflen, "%s%s", (prefix_with_type ? "v_string " : ""), pval->v_string);
+	} else {
+		char type[32];
+		epicsSnprintf(type, sizeof(type), "unknown type %d ", dbfld_dbrtype);
+        return epicsSnprintf(pbuf, buflen, "%s%s", (prefix_with_type ? type : ""), pval->v_string);
+    }
 }
+
+#if 0
+static char *debugVALUEString(const VALUE *v, int dbfld_dbrtype, char *buffer, size_t buflen)
+{
+	VALUE_to_string(buffer, buflen, v, dbfld_dbrtype, true);
+	return buffer;
+}
+#endif
 
 #endif // WITH_CAPUTLOG
 
@@ -278,19 +240,19 @@ gateResources::gateResources(void)
       access_file=strDup(GATE_PV_ACCESS_FILE);
     else
       access_file=NULL;
-    
+
     if(access(GATE_PV_LIST_FILE,F_OK)==0)
       pvlist_file=strDup(GATE_PV_LIST_FILE);
     else
       pvlist_file=NULL;
-    
+
     if(access(GATE_COMMAND_FILE,F_OK)==0)
       command_file=strDup(GATE_COMMAND_FILE);
     else
       command_file=NULL;
-      
-      
-    
+
+
+
 	// Miscellaneous initializations
 	putlog_file=NULL;
 #ifdef WITH_CAPUTLOG
@@ -301,21 +263,18 @@ gateResources::gateResources(void)
     debug_level=0;
     ro=0;
 	serverMode=false;
-#ifdef RESERVE_FOPEN_FD
-	reserveFp = NULL;
-#endif
-    
+
     setEventMask(DBE_VALUE | DBE_ALARM);
     setConnectTimeout(GATE_CONNECT_TIMEOUT);
     setInactiveTimeout(GATE_INACTIVE_TIMEOUT);
     setDeadTimeout(GATE_DEAD_TIMEOUT);
     setDisconnectTimeout(GATE_DISCONNECT_TIMEOUT);
     setReconnectInhibit(GATE_RECONNECT_INHIBIT);
-    
+
     gddApplicationTypeTable& tt = gddApplicationTypeTable::AppTable();
-    
+
 	gddMakeMapDBR(tt);
-	
+
 	appValue=tt.getApplicationType("value");
 	appUnits=tt.getApplicationType("units");
 	appEnum=tt.getApplicationType("enums");
@@ -431,6 +390,41 @@ void gateResources::caPutLog_Send
   }
   caPutLogTaskSend(pdata);
 }
+
+void gateResources::putLog(
+       FILE            *       fp,
+       const char      *       user,
+       const char      *       host,
+       const char      *       pvname,
+       const gdd       *       old_value,
+       const gdd       *       new_value       )
+{
+       if(fp) {
+               VALUE   oldVal,                 newVal;
+               char    acOldVal[20],   acNewVal[20];
+               if ( old_value == NULL )
+               {
+                       acOldVal[0] = '?';
+                       acOldVal[1] = '\0';
+               }
+               else
+               {
+                       gddToVALUE( old_value, gddGetOurType(old_value), &oldVal );
+                       VALUE_to_string( acOldVal, 20, &oldVal, gddGetOurType(old_value) );
+               }
+               gddToVALUE( new_value, gddGetOurType(new_value), &newVal );
+               VALUE_to_string( acNewVal, 20, &newVal, gddGetOurType(new_value) );
+               fprintf(fp,"%s %s@%s %s %s old=%s\n",
+                 timeStamp(),
+                 user?user:"Unknown",
+                 host?host:"Unknown",
+                 pvname,
+                 acNewVal,
+                 acOldVal );
+               fflush(fp);
+       }
+}
+
 #endif // WITH_CAPUTLOG
 
 int gateResources::setReportFile(const char* file)
@@ -451,46 +445,6 @@ int gateResources::setUpAccessSecurity(void)
 	as=new gateAs(pvlist_file,access_file);
 	return 0;
 }
-
-#ifdef RESERVE_FOPEN_FD
-// Functions to try to reserve a file descriptor to use for fopen.  On
-// Solaris, at least, fopen is limited to FDs < 256.  These could all
-// be used by CA and CAS sockets if there are connections to enough
-// IOCs  These functions try to reserve a FD < 256.
-FILE *gateResources::fopen(const char *filename, const char *mode)
-{
-	// Close the dummy file holding the FD open
-    if(reserveFp) ::fclose(reserveFp);
-    reserveFp=NULL;
-	
-	// Open the file.  It should use the lowest available FD, that is,
-	// the one we just made available.
-    FILE *fp=::fopen(filename,mode);
-    if(!fp) {
-		// Try to get the reserved one back
-		reserveFp=::fopen(GATE_RESERVE_FILE,"w");
-    }
-	
-    return fp;
-}
-
-int gateResources::fclose(FILE *stream)
-{
-	// Close the file
-    int ret=::fclose(stream);
-	
-	// Open the dummy file to reserve the FD just made available
-    reserveFp=::fopen(GATE_RESERVE_FILE,"w");
-	
-    return ret;
-}
-
-FILE *gateResources::openReserveFile(void)
-{
-    reserveFp=::fopen(GATE_RESERVE_FILE,"w");
-    return reserveFp;
-}
-#endif
 
 gateAs* gateResources::getAs(void)
 {

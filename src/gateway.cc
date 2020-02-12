@@ -6,7 +6,7 @@
 * Copyright (c) 2002 The Regents of the University of California, as
 * Operator of Los Alamos National Laboratory.
 * This file is distributed subject to a Software License Agreement found
-* in the file LICENSE that is included with this distribution. 
+* in the file LICENSE that is included with this distribution.
 \*************************************************************************/
 // Author: Jim Kowalkowski
 // Date: 2/96
@@ -78,7 +78,7 @@ static int nStart=0;
 static time_t startTime[NRESTARTS];
 static gateServer *server=NULL;
 
-// still need to add client and server IP addr info using 
+// still need to add client and server IP addr info using
 // the CA environment variables.
 
 // still need to add ability to load and run user servers dynamically
@@ -151,7 +151,7 @@ static void hideConsoleWindow()
 //	sip = nothing, the normal interface
 //
 // Precedence:
-//	(1) Command line parameter 
+//	(1) Command line parameter
 //	(2) environment variables
 //	(3) defaults
 
@@ -250,7 +250,7 @@ static PARM_STUFF ptable[] = {
     { "-prefix",              7, PARM_PREFIX,      "statistics_prefix" },
     { "-mask",                5, PARM_MASK,        "event_mask" },
 	{ "-no_cache",            9, PARM_CACHE,       "(no caching)" },
-	{ "-archive",             8, PARM_ARCHIVE,     "archive monitor" },	
+	{ "-archive",             8, PARM_ARCHIVE,     "archive monitor" },
     { "-hide",                5, PARM_HIDE,        "(WIN32: hide console window)" },
     { "-help",                5, PARM_HELP,        NULL },
     { NULL,                  -1, -1,               NULL }
@@ -272,7 +272,7 @@ static void sig_end(int sig)
 {
 	fflush(stdout);
 	fflush(stderr);
-	
+
 	switch(sig)	{
 #ifndef _WIN32
 	case SIGHUP:
@@ -333,7 +333,7 @@ static void sig_end(int sig)
 		  timeStamp());
 		break;
 	}
-	
+
 	// Have it stop itself if possible by setting the quit_flag
 	stopEverything();
 }
@@ -341,11 +341,7 @@ static void sig_end(int sig)
 #ifndef _WIN32
 static void sig_chld(int /*sig*/)
 {
-#ifdef SOLARIS
-	while(waitpid(-1,NULL,WNOHANG)>0);
-#else
 	while(wait3(NULL,WNOHANG,NULL)>0);
-#endif
 	signal(SIGCHLD,sig_chld);
 }
 #endif //#ifndef _WIN32
@@ -355,7 +351,7 @@ static void sig_stop(int /*sig*/)
 {
 	if(gate_pid)
 	  kill(gate_pid,SIGTERM);
-	
+
 	death_flag=1;
 }
 #endif //#ifndef _WIN32
@@ -389,6 +385,7 @@ static int startEverything(char *prefix)
 		if(tempBuff != NULL){
 			if(strcasecmp(tempBuff,"NO")){
                 setEnv("EPICS_CAS_AUTO_BEACON_ADDR_LIST","YES",&gate_beacon_ca_auto_list);
+				gateDebug1(15,"gateway setting <%s>\n",gate_beacon_ca_auto_list);
 			}
 		}
 		gateDebug1(15,"gateway setting <%s>\n",gate_ca_auto_list);
@@ -421,15 +418,6 @@ static int startEverything(char *prefix)
 
 	sid=getpid();
 
-#ifdef RESERVE_FOPEN_FD
-	// Open a dummy file to keep a file descriptor open to use for
-	// fopen to avoid its limit of 256 on Solaris
-	if(!global_resources->openReserveFile()) {
-		fprintf(stderr,"Opening reserve file failed: %s\n",
-		  GATE_RESERVE_FILE);
-	}
-#endif
-	
 #ifndef _WIN32
 	// Make script file ("gateway.killer" by default)
 	errno=0;
@@ -463,7 +451,7 @@ static int startEverything(char *prefix)
 	fprintf(fp,"# user id=%ld\n",(long)getuid());
 	fprintf(fp,"# group id=%ld\n",(long)getgid());
 	fprintf(fp,"# caching=%s\n",global_resources->getCacheMode() ? "enabled" : "disabled" );
-	fprintf(fp,"# archive monitor=%s\n",global_resources->getArchiveMode() ? "enabled" : "disabled" );	
+	fprintf(fp,"# archive monitor=%s\n",global_resources->getArchiveMode() ? "enabled" : "disabled" );
 
 	// Print command-line arguments
 	fprintf(fp,"# \n");
@@ -493,11 +481,11 @@ static int startEverything(char *prefix)
 	fprintf(fp,"\n kill %ld # to kill everything\n\n",(long)parent_pid);
 	fprintf(fp,"\n # kill %u # to kill off this gateway\n\n",sid);
 	fflush(fp);
-	
+
 	if(fp!=stderr) fclose(fp);
 	chmod(GATE_SCRIPT_FILE,00755);
 #endif  //#ifndef _WIN32
-	
+
 #ifndef _WIN32
 	// Make script file ("gateway.restart" by default)
 	errno=0;
@@ -509,14 +497,14 @@ static int startEverything(char *prefix)
 		fflush(stderr);
 		fp=stderr;
 	}
-	
+
 	fprintf(fp,"\n kill %d # to kill off this gateway\n\n",sid);
 	fflush(fp);
-	
+
 	if(fp!=stderr) fclose(fp);
 	chmod(GATE_RESTART_FILE,00755);
 #endif  //#ifndef _WIN32
-	
+
 	// Increase process limits to max
 #ifdef _WIN32
 	// Set open file limit (512 by default, 2048 is max)
@@ -566,7 +554,7 @@ static int startEverything(char *prefix)
 		}
 #endif
 	}
-	
+
 	if(getrlimit(RLIMIT_CORE,&lim)<0) {
 		fprintf(stderr,"Cannot retrieve the process FD limits\n");
 	} else {
@@ -587,7 +575,7 @@ static int startEverything(char *prefix)
 # endif
 	}
 #endif
-	
+
 #ifndef _WIN32
 	save_hup=signal(SIGHUP,sig_end);
 	save_bus=signal(SIGBUS,sig_end);
@@ -615,6 +603,7 @@ static int startEverything(char *prefix)
 #else
 	printf("%s PID=%d\n",EPICS_VERSION_STRING,sid);
 #endif
+	printf("CA Protocol version %s\n", ca_version());
 	printEnv(stdout,"EPICS_CA_ADDR_LIST");
 	printEnv(stdout,"EPICS_CA_AUTO_ADDR_LIST");
 	printEnv(stdout,"EPICS_CA_SERVER_PORT");
@@ -622,6 +611,8 @@ static int startEverything(char *prefix)
 	printEnv(stdout,"EPICS_CAS_INTF_ADDR_LIST");
 	printEnv(stdout,"EPICS_CAS_SERVER_PORT");
 	printEnv(stdout,"EPICS_CAS_IGNORE_ADDR_LIST");
+	printEnv(stdout,"EPICS_CAS_AUTO_BEACON_ADDR_LIST");
+	printEnv(stdout,"EPICS_CAS_BEACON_ADDR_LIST");
 
 	// Get user name
 	char userName[21];
@@ -630,7 +621,7 @@ static int startEverything(char *prefix)
 		strcpy(userName,"Unknown");
 	}
 	userName[20]='\0';
-	
+
 	// Get host name
 	char *hostName=getComputerName();
 	if(!hostName) hostName=strDup("Unknown");
@@ -641,7 +632,7 @@ static int startEverything(char *prefix)
 	FILE *putFp=global_resources->getPutlogFp();
 	if(putFp) {
 		fprintf(putFp,"%s %s [%s %s]\n",
-		  timeStamp(),GATEWAY_VERSION_STRING,__DATE__,__TIME__);	  
+		  timeStamp(),GATEWAY_VERSION_STRING,__DATE__,__TIME__);
 		fprintf(putFp,"%s PID=%d\n",EPICS_VERSION_STRING,sid);
 		fprintf(putFp,"Attempted Writes:\n");
 		fflush(putFp);
@@ -799,11 +790,11 @@ int main(int argc, char** argv)
 				case PARM_CACHE:
 					cache=0;
 					not_done=0;
-					break;	
+					break;
 				case PARM_ARCHIVE:
 					archive=1;
 					not_done=0;
-					break;						
+					break;
 				case PARM_RO:
 					read_only=1;
 					not_done=0;
@@ -1139,7 +1130,7 @@ int main(int argc, char** argv)
 		fprintf(stderr,"\tinactive=%ld\n",gr->inactiveTimeout());
 		fprintf(stderr,"\tmask=%s\n",gr->eventMaskString());
 		fprintf(stderr,"\tcaching = %s\n",gr->getCacheMode() ? "enabled" : "disabled" );
-		fprintf(stderr,"\tarchive monitor = %s\n",gr->getArchiveMode() ? "enabled" : "disabled" );		
+		fprintf(stderr,"\tarchive monitor = %s\n",gr->getArchiveMode() ? "enabled" : "disabled" );
 #ifndef _WIN32
 		fprintf(stderr,"\tuser id=%ld\n",(long)getuid());
 		fprintf(stderr,"\tgroup id=%ld\n",(long)getgid());
@@ -1150,7 +1141,7 @@ int main(int argc, char** argv)
 		  "files exist in home)\n");
 		return -1;
 	}
-	
+
 	// Change to the specified home directory
 	if(home_dir)
 	{
@@ -1187,18 +1178,18 @@ int main(int argc, char** argv)
 #endif
 	if(report_file)	    	gr->setReportFile(report_file);
 	if(hide_console)		hideConsoleWindow();
-	
-	//set caching and archive mode 
+
+	//set caching and archive mode
 	gr->setCacheMode(cache);
 	gr->setArchiveMode(archive);
-	
+
 	//get EPICS_CA_MAX_ARRAY_BYTES
     long maxBytesAsALong;
-    long byteStatus =  envGetLongConfigParam ( & EPICS_CA_MAX_ARRAY_BYTES, & maxBytesAsALong );	
+    long byteStatus =  envGetLongConfigParam ( & EPICS_CA_MAX_ARRAY_BYTES, & maxBytesAsALong );
 	if ( byteStatus || maxBytesAsALong <= 0 || ((unsigned)maxBytesAsALong < MAX_TCP)) maxBytesAsALong = MAX_TCP;
-	gr->setMaxBytes((unsigned)maxBytesAsALong);	
+	gr->setMaxBytes((unsigned)maxBytesAsALong);
 
-	
+
 #ifndef _WIN32
 	gr->setServerMode(make_server);
 #endif
@@ -1348,7 +1339,7 @@ int main(int argc, char** argv)
 		fprintf(stderr," dead timeout = %ld\n",gr->deadTimeout());
 		fprintf(stderr," event mask = %s\n",gr->eventMaskString());
 		fprintf(stderr," caching = %s\n",gr->getCacheMode() ? "enabled" : "disabled" );
-		fprintf(stderr," archive monitor = %s\n",gr->getArchiveMode() ? "enabled" : "disabled" );		
+		fprintf(stderr," archive monitor = %s\n",gr->getArchiveMode() ? "enabled" : "disabled" );
 #ifndef _WIN32
 		fprintf(stderr," user id= %ld\n",(long)getuid());
 		fprintf(stderr," group id= %ld\n",(long)getgid());
@@ -1371,7 +1362,7 @@ int main(int argc, char** argv)
 		}
 		gr->setPutlogFp(fp);
 	}
-	
+
 	startEverything(stat_prefix);
 	delete global_resources;
 	return 0;
@@ -1395,65 +1386,65 @@ static void print_instructions(void)
 {
 	pr(stderr,"-debug value: Enter value between 0-100.  50 gives lots of\n");
 	pr(stderr," info, 1 gives small amount.\n\n");
-	
+
 	pr(stderr,"-pvlist file_name: Name of file with all the allowed PVs in it\n");
 	pr(stderr," See the sample file gateway.pvlist in the source distribution\n");
 	pr(stderr," for a description of how to create this file.\n");
-	
+
 	pr(stderr,"-access file_name: Name of file with all the EPICS access\n");
 	pr(stderr," security rules in it.  PVs in the pvlist file use groups\n");
 	pr(stderr," and rules defined in this file.\n");
-	
+
 	pr(stderr,"-log file_name: Name of file where all messages from the\n");
 	pr(stderr," gateway go, including stderr and stdout.\n\n");
-	
+
 	pr(stderr,"-command file_name: Name of file where gateway command(s) go\n");
 	pr(stderr," Commands are executed when a USR1 signal is sent to gateway.\n\n");
-	
+
 	pr(stderr,"-putlog file_name: Name of file where gateway put logging goes.\n");
 	pr(stderr," Put logging is specified with TRAPWRITE in the access file.\n\n");
-	
+
 	pr(stderr,"-report file_name: Name of file where gateway reports go.\n");
 	pr(stderr," Reports are appended to this file if it exists.\n\n");
-	
+
 	pr(stderr,"-home directory: Home directory where all your gateway\n");
 	pr(stderr," configuration files are kept where log and command files go.\n\n");
-	
+
 	pr(stderr,"-sip IP_address: IP address that gateway's CA server listens\n");
 	pr(stderr," for PV requests.  Sets env variable EPICS_CAS_INTF_ADDR.\n\n");
-	
+
 	pr(stderr,"-signore IP_address_list: IP address that gateway's CA server\n");
 	pr(stderr," ignores.  Sets env variable EPICS_CAS_IGNORE_ADDR_LIST.\n\n");
-	
+
 	pr(stderr,"-cip IP_address_list: IP address list that the gateway's CA\n");
 	pr(stderr," client uses to find the real PVs.  See CA reference manual.\n");
 	pr(stderr," This sets environment variables EPICS_CA_AUTO_LIST=NO and\n");
 	pr(stderr," EPICS_CA_ADDR_LIST.\n\n");
-	
+
 	pr(stderr,"-sport CA_server_port: The port which the gateway's CA server\n");
 	pr(stderr," uses to listen for PV requests.  Sets environment variable\n");
 	pr(stderr," EPICS_CAS_SERVER_PORT.\n\n");
-	
+
 	pr(stderr,"-cport CA_client_port:  The port which the gateway's CA client\n");
 	pr(stderr," uses to find the real PVs.  Sets environment variable\n");
 	pr(stderr," EPICS_CA_SERVER_PORT.\n\n");
-	
+
 	pr(stderr,"-connect_timeout seconds: The amount of time that the\n");
 	pr(stderr," gateway will allow a PV search to continue before marking the\n");
 	pr(stderr," PV as being not found.\n\n");
-	
+
 	pr(stderr,"-inactive_timeout seconds: The amount of time that the gateway\n");
 	pr(stderr," will hold the real connection to an unused PV.  If no gateway\n");
 	pr(stderr," clients are using the PV, the real connection will still be\n");
 	pr(stderr," held for this long.\n\n");
-	
+
 	pr(stderr,"-dead_timeout seconds:  The amount of time that the gateway\n");
 	pr(stderr," will hold requests for PVs that are not found on the real\n");
 	pr(stderr," network that the gateway is using.  Even if a client's\n");
 	pr(stderr," requested PV is not found on the real network, the gateway\n");
 	pr(stderr," marks the PV dead, holds the request and continues trying\n");
 	pr(stderr," to connect for this long.\n\n");
-	
+
 	pr(stderr,"-disconnect_timeout seconds:  The amount of time that the gateway\n");
 	pr(stderr," will hold requests for PVs that were connected but have been\n");
 	pr(stderr," disconnected. When a disconnected PV reconnects, the gateway will\n");
@@ -1467,25 +1458,25 @@ static void print_instructions(void)
 	pr(stderr,"-server: Start as server. Detach from controlling terminal\n");
 	pr(stderr," and start a daemon that watches the gateway and automatically\n");
 	pr(stderr," restarts it if it dies.\n");
-	
+
 	pr(stderr,"-mask event_mask: Event mask that is used for connections on the\n");
 	pr(stderr," real network: use any combination of v (value), a (alarm), l (log).\n");
 	pr(stderr," Default is va (forward value and alarm change events).\n");
-	
+
 	pr(stderr,"-prefix string: Set the prefix for the gateway statistics PVs.\n");
 	pr(stderr," Defaults to the hostname the gateway is running on.\n");
-	
+
 	pr(stderr,"-uid number: Run the server with this id, server does a\n");
 	pr(stderr," setuid(2) to this user id number.\n\n");
 
 	pr(stderr,"-gid number: Run the server with this id, server does a\n");
 	pr(stderr," setgid(2) to this group id number.\n\n");
-	
+
 	pr(stderr,"-no_cache: Disables caching. Every get request will be forwarded to\n");
 	pr(stderr," the ioc and monitor will be created only if needed.\n");
-	
+
 	pr(stderr,"-archive: Enables archive monitor. Additional log event monitor is \n");
-	pr(stderr," is created.\n");	
+	pr(stderr," is created.\n");
 
 }
 
@@ -1508,7 +1499,7 @@ static int manage_gateway(void)
 	save_hup=signal(SIGHUP,sig_stop);
 	save_term=signal(SIGTERM,sig_stop);
 	save_int=signal(SIGINT,sig_stop);
-	
+
 	// Fork.  Parent will exit, child will be a session leader
 	pid_t pid=fork();
 	switch(pid)	{
@@ -1530,10 +1521,10 @@ static int manage_gateway(void)
 		// Parent
 		return 1;  // Will cause main to return 0;
 	}
-	
+
 	parent_pid=getpid();
-	
-	// 
+
+	//
 	do {
 		// Don't allow runaway restarts
 		time(&t);
@@ -1558,7 +1549,7 @@ static int manage_gateway(void)
 				startTime[NRESTARTS-1]=t;
 			}
 		}
-		
+
 		// Don't respawn faster than every RESTART_DELAY seconds
 		if((t-prevt) < RESTART_DELAY) sleep(RESTART_DELAY);
 		prevt=t;
@@ -1587,7 +1578,7 @@ static int manage_gateway(void)
 			break;
 		}
 	} while(gate_pid && death_flag==0);
-	
+
 	if(death_flag || gate_pid==-1) rc=1;
 	else rc=0;
 
@@ -1671,7 +1662,7 @@ void printRecentHistory(void)
 static void printEnv(FILE *fp, const char *var)
 {
 	if(!fp || !var) return;
-	
+
 	char *value=getenv(var);
 	fprintf(fp,"%s=%s\n", var, value?value:"Not specified");
 }
