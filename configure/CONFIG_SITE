@@ -13,7 +13,7 @@
 #######################################################################
 
 # Use Perl compatible regular expressions (PCRE) instead of basic regex
-#USE_PCRE=YES
+USE_PCRE=YES
 
 # For PCRE on Linux
 #    requires package pcre-devel (or libpcre3-dev) for compiling
@@ -25,7 +25,7 @@ ifeq ($(OS_CLASS),WIN32)
     #    install libraries and includes from
     #    https://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0.exe/download
     #    and set the install location here
-    PCRE_DIR=C:/Pcre
+    PCRE_DIR = $(EPICS_KIT_ROOT)/support/pcre/master
 
     # For REGEX on Windows
     #    compile gnuregex inside an EPICS support module from the sources at
@@ -36,7 +36,7 @@ ifeq ($(OS_CLASS),WIN32)
 endif
 
 # Negative regexp matching: !pattern matches when pattern does not match
-#USE_NEG_REGEXP=YES
+USE_NEG_REGEXP=YES
 
 # Enable DENY FROM
 USE_DENY_FROM=YES

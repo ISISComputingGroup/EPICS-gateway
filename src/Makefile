@@ -28,17 +28,9 @@ endif
 ifeq ($(USE_PCRE),YES)
   USR_CXXFLAGS += -DUSE_PCRE
   ifeq ($(OS_CLASS),WIN32)
-    USR_INCLUDES += -I$(PCRE_DIR)/inc
-    PROD_LIBS += pcre3
-    ifeq ($(CMPLR_CLASS),msvc)
-      ifeq ($(T_A),windows-x64)
-        pcre3_DIR = $(PCRE_DIR)/lib/x64
-      else
-        pcre3_DIR = $(PCRE_DIR)/lib
-      endif
-    else
-      pcre3_DIR = $(PCRE_DIR)/bin
-    endif
+    USR_INCLUDES += -I$(PCRE_DIR)/include
+    PROD_LIBS += pcre
+	pcre_DIR = $(PCRE_DIR)/lib/$(T_A)
   else
     USR_SYS_LIBS += pcre
   endif
