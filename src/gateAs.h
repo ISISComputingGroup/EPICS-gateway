@@ -130,6 +130,7 @@ public:
 	ASMEMBERPVT asmemberpvt;
 #ifdef USE_PCRE
 	pcre* pat_buff;
+    pcre_extra* pat_extra;
 	int substrings;
 	int ovecsize;
 	int *ovector;
