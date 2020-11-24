@@ -249,14 +249,14 @@ aitBool gateAsEntry::compilePattern(int line) {
                 fprintf(stderr,"%*c\n", erroffset+1, '^');
 		return aitFalse;
 	}
-        pat_extra = pcre_study(pat_buff, PCRE_STUDY_JIT_COMPILE, &err);
+        pat_extra = pcre_study(pat_buff, 0/*PCRE_STUDY_JIT_COMPILE*/, &err); /* Study helps, but JIT seems slower */
         if (!pat_extra && err) {
-		    fprintf(stderr,"Line %d: Warning: failed to study Perl regexp %s: %s\n",
+            fprintf(stderr,"Line %d: Warning: failed to study Perl regexp %s: %s\n",
                     line, pattern, err);
         }
         if ( (erroffset = pcre_fullinfo(pat_buff, pat_extra, PCRE_INFO_CAPTURECOUNT, &ovecsize)) != 0 )
         {
-		    fprintf(stderr,"Line %d: Error calculating capture count for Perl regexp %s: ret=%d\n",
+            fprintf(stderr,"Line %d: Error calculating capture count for Perl regexp %s: ret=%d\n",
                     line, pattern, erroffset);
         }
         ovecsize = (ovecsize+1)*3;
