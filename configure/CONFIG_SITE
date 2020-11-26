@@ -36,7 +36,7 @@ ifeq ($(OS_CLASS),WIN32)
 endif
 
 # Negative regexp matching: !pattern matches when pattern does not match
-#USE_NEG_REGEXP=YES
+USE_NEG_REGEXP=YES
 
 # Enable DENY FROM
 USE_DENY_FROM=YES
