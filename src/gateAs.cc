@@ -82,6 +82,7 @@ gateAsEntry::gateAsEntry(const char* pattern, const char* realname, const char* 
 {
 #ifdef USE_PCRE
 	pat_buff = NULL;
+    pat_extra = NULL;
 	ovector = NULL;
 	ovecsize = 0;
 #else
@@ -100,6 +101,14 @@ gateAsEntry::~gateAsEntry(void)
 	// Free allocated stuff in the pattern buffer
 #ifdef USE_PCRE
 	pcre_free(pat_buff);
+    if (pat_extra != NULL)
+    {
+#ifdef PCRE_CONFIG_JIT
+        pcre_free_study(pat_extra);
+#else
+        pcre_free(pat_extra);
+#endif
+    }
 	pcre_free(ovector);
 #else
 	regfree(&pat_buff);
@@ -217,8 +226,22 @@ aitBool gateAsEntry::compilePattern(int line) {
 #endif
 
 #ifdef USE_PCRE
+
+#ifndef PCRE_STUDY_JIT_COMPILE
+#define PCRE_STUDY_JIT_COMPILE 0 /* not present on pre 8.20 version */
+#endif
+
 	int erroffset;
+    // we add a ^ rather than using PCRE_ANCHORED as JIT compile does not support PCRE_ANCHORED
+    if (pattern[0] != '^') {
+        char* anchored_pattern = (char*)malloc(2 + strlen(pattern));
+        anchored_pattern[0] = '^';
+        strcpy(anchored_pattern + 1, pattern);
+        pat_buff = pcre_compile(anchored_pattern, 0, &err, &erroffset, NULL);
+        free(anchored_pattern);
+    } else { 
         pat_buff = pcre_compile(pattern, 0, &err, &erroffset, NULL);
+    }
 	if(!pat_buff)	{
 		fprintf(stderr,"Line %d: Error after %d chars in Perl regexp: %s\n",
                     line, erroffset, err);
@@ -226,7 +249,16 @@ aitBool gateAsEntry::compilePattern(int line) {
                 fprintf(stderr,"%*c\n", erroffset+1, '^');
 		return aitFalse;
 	}
-        pcre_fullinfo(pat_buff, NULL, PCRE_INFO_CAPTURECOUNT, &ovecsize);
+        pat_extra = pcre_study(pat_buff, 0/*PCRE_STUDY_JIT_COMPILE*/, &err); /* Study helps, but JIT seems slower */
+        if (!pat_extra && err) {
+            fprintf(stderr,"Line %d: Warning: failed to study Perl regexp %s: %s\n",
+                    line, pattern, err);
+        }
+        if ( (erroffset = pcre_fullinfo(pat_buff, pat_extra, PCRE_INFO_CAPTURECOUNT, &ovecsize)) != 0 )
+        {
+            fprintf(stderr,"Line %d: Error calculating capture count for Perl regexp %s: ret=%d\n",
+                    line, pattern, erroffset);
+        }
         ovecsize = (ovecsize+1)*3;
         ovector = (int*) pcre_malloc (sizeof(int)*ovecsize);
 #else
@@ -390,8 +422,8 @@ gateAsEntry* gateAs::findEntryInList(const char* pv, gateAsList& list) const
 	while(pi.pointer()) {
         int len = (int) strlen(pv);
 #ifdef USE_PCRE
-		pi->substrings=pcre_exec(pi->pat_buff, NULL,
-                    pv, len, 0, PCRE_ANCHORED, pi->ovector, 30);
+		pi->substrings=pcre_exec(pi->pat_buff, pi->pat_extra,
+                    pv, len, 0, 0, pi->ovector, pi->ovecsize);
 		if((pi->substrings>=0 && pi->ovector[1] == len)
 #ifdef USE_NEG_REGEXP
 		    ^ pi->negate_pattern

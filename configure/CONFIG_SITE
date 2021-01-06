@@ -25,7 +25,7 @@ ifeq ($(OS_CLASS),WIN32)
     #    install libraries and includes from
     #    https://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0.exe/download
     #    and set the install location here
-    PCRE_DIR=C:/Pcre
+    PCRE_DIR = $(EPICS_KIT_ROOT)/support/pcre/master
 
     # For REGEX on Windows
     #    compile gnuregex inside an EPICS support module from the sources at

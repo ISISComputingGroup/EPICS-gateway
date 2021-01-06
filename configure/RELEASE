@@ -1,5 +1,6 @@
 CAPUTLOG=$(SUPPORT)/caPutLog/master
 PCAS=$(SUPPORT)/pcas/master
+PCRE=$(SUPPORT)/pcre/master
 
 #CAPUTLOG=/usr/lib/epics
 
