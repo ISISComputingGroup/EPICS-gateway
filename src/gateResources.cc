@@ -195,10 +195,11 @@ static int gddToVALUE(const gdd *gddVal, short dbfld_dbrtype, VALUE *valueStruct
  */
 static int VALUE_to_string(char *pbuf, size_t buflen, const VALUE *pval, short dbfld_dbrtype, bool prefix_with_type = false)
 {
+    /* CHAR and UCHAR are typically used as SHORTSHORT,
+	 * so avoid mounting NULL-bytes into the string
+	 */
 	if (dbfld_dbrtype == DBFLD::D_CHAR) {
-       /* CHAR and UCHAR are typically used as SHORTSHORT,
-	    * so avoid mounting NULL-bytes into the string
-	    */
+		/* we print v_uint8 rather than v_int8, this is what caPutLog does */
         return epicsSnprintf(pbuf, buflen, "%s%d", (prefix_with_type ? "v_int8 " : ""), (int)pval->v_uint8);
 	} else if (dbfld_dbrtype == DBFLD::D_UCHAR) {
         return epicsSnprintf(pbuf, buflen, "%s%d", (prefix_with_type ? "v_uint8 " : ""), (int)pval->v_uint8);
@@ -442,6 +443,7 @@ int gateResources::setDebugLevel(int level)
 
 int gateResources::setUpAccessSecurity(void)
 {
+    if (as) delete as;
 	as=new gateAs(pvlist_file,access_file);
 	return 0;
 }
