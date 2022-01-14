@@ -4,11 +4,12 @@
 /db/
 /dbd/
 /configure/*.local
-/html/
-**/O.*
+html/
+O.*/
 envPaths
 QtC-*
 *.orig
+.idea/
 __pycache__
 
 # Gateway generated scriptlets

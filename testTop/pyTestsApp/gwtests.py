@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''CA Gateway test configuration'''
 
 import os
 import sys
+import time
 
 # Do we want verbose logging
 verbose = False
@@ -65,3 +66,15 @@ def setup():
         iocExecutable = os.path.join(os.environ['EPICS_BASE'], 'bin', hostArch, 'softIoc')
     else:
         print("Warning: IOC_EPICS_BASE or EPICS_BASE not set. Running 'softIoc' executable in PATH")
+
+    if 'EPICS_BASE' in os.environ:
+        os.environ['PATH'] += os.pathsep + os.path.join(os.environ['EPICS_BASE'], 'bin', hostArch)
+    else:
+        print("Warning: EPICS_BASE not set. Will look for 'caRepeater' executable in PATH")
+
+def wait_until(predicate, timeout, period=0.1, *args, **kwargs):
+    mustend = time.time() + timeout
+    while time.time() < mustend:
+      if predicate(*args, **kwargs): return True
+      time.sleep(period)
+    return False

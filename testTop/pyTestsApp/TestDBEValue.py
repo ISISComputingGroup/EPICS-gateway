@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 import unittest
 import epics
@@ -42,8 +42,8 @@ class TestDBEValue(unittest.TestCase):
 
         for val in range(10):
             ioc.put(val, wait=True)
-        time.sleep(.1)
 
+        gwtests.wait_until(lambda: self.eventsReceived == 11, 5.0)
         # We get 11 events: at connection, then at 10 value changes (puts)
         self.assertTrue(self.eventsReceived == 11, 'events expected: 11; events received: ' + str(self.eventsReceived))
 
