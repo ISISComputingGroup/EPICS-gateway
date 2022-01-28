@@ -56,6 +56,8 @@
 # include <sys/time.h>
 #endif
 
+#include <iostream>
+
 #include "tsDLList.h"
 
 #include <gdd.h>
@@ -2016,6 +2018,10 @@ gdd* gatePvData::eventStringCB(EVENT_ARGS * pArgs)
         nd = new aitFixedString[maxCount];
 		d=(aitFixedString*)&ts->value;
         memset(nd, 0, maxCount * sizeof(aitFixedString));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::eventStringCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitFixedString));
         value = new gddAtomic(GR->appValue, aitEnumFixedString, 1, &count);
 		value->putRef(nd,new gateFixedStringDestruct());
@@ -2058,6 +2064,10 @@ gdd* gatePvData::eventEnumCB(EVENT_ARGS * pArgs)
         nd = new aitEnum16[maxCount];
         d = (aitEnum16*)&ts->value;
         memset(nd, 0, maxCount * sizeof(aitEnum16));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::eventEnumCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitEnum16));
         value = new gddAtomic(GR->appValue, aitEnumInt16, 1, &count);
 		value->putRef(nd,new gateEnumDestruct());
@@ -2092,6 +2102,10 @@ gdd* gatePvData::eventLongCB(EVENT_ARGS * pArgs)
         nd = new aitInt32[maxCount];
         d = (aitInt32*)&ts->value;
         memset(nd, 0, maxCount * sizeof(aitInt32));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::eventLongCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitInt32));
         value = new gddAtomic(GR->appValue, aitEnumInt32, 1, &count);
 		value->putRef(nd,new gateIntDestruct());
@@ -2122,6 +2136,10 @@ gdd* gatePvData::eventCharCB(EVENT_ARGS * pArgs)
         nd = new aitInt8[maxCount];
         d = (aitInt8*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitInt8));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::eventCharCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitInt8));
         value = new gddAtomic(GR->appValue, aitEnumInt8, 1, &count);
 		value->putRef(nd,new gateCharDestruct());
@@ -2152,6 +2170,10 @@ gdd* gatePvData::eventFloatCB(EVENT_ARGS * pArgs)
         nd = new aitFloat32[maxCount];
         d = (aitFloat32*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitFloat32));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::eventFloatCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitFloat32));
         value = new gddAtomic(GR->appValue, aitEnumFloat32, 1, &count);
 		value->putRef(nd,new gateFloatDestruct());
@@ -2182,6 +2204,10 @@ gdd* gatePvData::eventDoubleCB(EVENT_ARGS * pArgs)
         nd = new aitFloat64[maxCount];
         d = (aitFloat64*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitFloat64));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::eventDoubleCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitFloat64));
         value = new gddAtomic(GR->appValue, aitEnumFloat64, 1, &count);
 		value->putRef(nd,new gateDoubleDestruct());
@@ -2212,6 +2238,10 @@ gdd* gatePvData::eventShortCB(EVENT_ARGS * pArgs)
         nd = new aitInt16[maxCount];
         d = (aitInt16*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitInt16));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::eventShortCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitInt16));
         value = new gddAtomic(GR->appValue, aitEnumInt16, 1, &count);
 		value->putRef(nd,new gateShortDestruct);
@@ -2275,6 +2305,10 @@ gdd* gatePvData::valueDataEnumCB(EVENT_ARGS * pArgs)
         nd = new aitEnum16[maxCount];
         d = (aitEnum16*)&ts->value;
         memset(nd, 0, maxCount * sizeof(aitEnum16));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::valueDataEnumCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitEnum16));
         value = new gddAtomic(GR->appValue, aitEnumInt16, 1, &count);
 		value->putRef(nd,new gateEnumDestruct());
@@ -2308,6 +2342,10 @@ gdd* gatePvData::valueDataLongCB(EVENT_ARGS * pArgs)
         nd = new aitInt32[maxCount];
         d = (aitInt32*)&ts->value;
         memset(nd, 0, maxCount * sizeof(aitInt32));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::valueDataLongCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitInt32));
         value = new gddAtomic(GR->appValue, aitEnumInt32, 1, &count);
 		value->putRef(nd,new gateIntDestruct());
@@ -2337,6 +2375,10 @@ gdd* gatePvData::valueDataCharCB(EVENT_ARGS * pArgs)
         nd = new aitInt8[maxCount];
         d = (aitInt8*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitInt8));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::valueDataCharCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitInt8));
         value = new gddAtomic(GR->appValue, aitEnumInt8, 1, &count);
 		value->putRef(nd,new gateCharDestruct());
@@ -2366,6 +2408,10 @@ gdd* gatePvData::valueDataFloatCB(EVENT_ARGS * pArgs)
         nd = new aitFloat32[maxCount];
         d = (aitFloat32*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitFloat32));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::valueDataFloatCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitFloat32));
         value = new gddAtomic(GR->appValue, aitEnumFloat32, 1, &count);
 		value->putRef(nd,new gateFloatDestruct());
@@ -2395,6 +2441,10 @@ gdd* gatePvData::valueDataDoubleCB(EVENT_ARGS * pArgs)
         nd = new aitFloat64[maxCount];
         d = (aitFloat64*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitFloat64));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::valueDataDoubleCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitFloat64));
         value = new gddAtomic(GR->appValue, aitEnumFloat64, 1, &count);
 		value->putRef(nd,new gateDoubleDestruct());
@@ -2424,6 +2474,10 @@ gdd* gatePvData::valueDataShortCB(EVENT_ARGS * pArgs)
         nd = new aitInt16[maxCount];
         d = (aitInt16*)&(ts->value);
         memset(nd, 0, maxCount * sizeof(aitInt16));
+        if (count > maxCount) {
+            std::cerr << "gatePvData::valueDataShortCB: count=" << count << " maxCount=" << maxCount << std::endl;
+            count = maxCount;
+        }
         memcpy(nd, d, count * sizeof(aitInt16));
         value = new gddAtomic(GR->appValue, aitEnumInt16, 1, &count);
 		value->putRef(nd,new gateShortDestruct);
