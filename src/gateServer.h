@@ -63,7 +63,7 @@ private:
 
 public:
 	gatePvNode(gatePvData& d) : pvd(&d) { }
-	~gatePvNode(void) { }
+	~gatePvNode(void) { pvd = NULL; }
 
 	gatePvData* getData(void) { return pvd; }
 	void destroy(void) { delete pvd; delete this; }
@@ -302,6 +302,9 @@ private:
 	tsDLHashList<gatePvNode> pv_con_list;	// pending client pv connection list
 	tsDLHashList<gateVcData> vc_list;		// server pv list
 
+    epicsMutex pv_list_mutex;
+    epicsMutex pv_con_list_mutex;
+    
 	void setDeadCheckTime(void);
 	void setInactiveCheckTime(void);
 	void setConnectCheckTime(void);
@@ -371,19 +374,21 @@ inline int gateServer::refreshSuppressed(void) const
 inline int gateServer::pvAdd(const char* name, gatePvData& pv)
 {
 	gatePvNode* x = new gatePvNode(pv);
+    epicsGuard<epicsMutex> _lock(pv_list_mutex);
 	return pv_list.add(name,*x);
 }
 inline int gateServer::conAdd(const char* name, gatePvData& pv)
 {
 	gatePvNode* x = new gatePvNode(pv);
+    epicsGuard<epicsMutex> _lock(pv_con_list_mutex);
 	return pv_con_list.add(name,*x);
 }
 
 // --------- find functions
 inline int gateServer::pvFind(const char* name, gatePvNode*& pv)
-	{ return pv_list.find(name,pv); }
+	{ epicsGuard<epicsMutex> _lock(pv_list_mutex); return pv_list.find(name,pv); }
 inline int gateServer::conFind(const char* name, gatePvNode*& pv)
-	{ return pv_con_list.find(name,pv); }
+	{ epicsGuard<epicsMutex> _lock(pv_con_list_mutex); return pv_con_list.find(name,pv); }
 
 inline int gateServer::pvFind(const char* name, gatePvData*& pv)
 {
@@ -406,6 +411,7 @@ inline int gateServer::pvDelete(const char* name, gatePvData*& pv)
 {
 	gatePvNode* n;
 	int rc;
+    epicsGuard<epicsMutex> _lock(pv_list_mutex);
     if ((rc = pvFind(name,n)) == 0) {
         pv_list.remove(name, n);
         pv = n->getData();
@@ -419,6 +425,7 @@ inline int gateServer::conDelete(const char* name, gatePvData*& pv)
 {
 	gatePvNode* n;
 	int rc;
+    epicsGuard<epicsMutex> _lock(pv_con_list_mutex);
     if ((rc = conFind(name,n)) == 0) {
         pv_con_list.remove(name, n);
         pv = n->getData();

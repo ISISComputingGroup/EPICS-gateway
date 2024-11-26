@@ -453,6 +453,8 @@ gateVcData::~gateVcData(void)
 		removeChan(pChan);
 		pChan->deleteAsClient();
 	}
+    
+    asentry=NULL;
 
 	// Clear the async io lists to insure the gateAsyncX's do not try
 	// to remove themselves from the lists after the gateVcData and

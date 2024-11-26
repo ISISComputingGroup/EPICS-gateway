@@ -502,10 +502,15 @@ void gateServer::newAs(void)
 
 	//  Treat the pv_list and pv_con_list the same way.  i=0 is
 	// pv_list and i=1 is the pv_con_list.
+        epicsMutex pv_list_mutex;
+    epicsMutex pv_con_list_mutex;
+
 	for(i=0; i < 2; i++) {
 		tsDLHashList<gatePvNode> *list;
-		if(i == 0) list=&pv_list;
-		else list=&pv_con_list;
+        epicsMutex* lock;
+		if(i == 0) { list=&pv_list; lock=&pv_list_mutex; }
+		else { list=&pv_con_list; lock=&pv_con_list_mutex; }
+        epicsGuard<epicsMutex> _lock(*lock);
 		tsDLIter<gatePvNode> iter=list->firstIter();
 		while(iter.valid())	{
 			gatePvNode *pNode=iter.pointer();
@@ -571,8 +576,10 @@ void gateServer::newAs(void)
 	// pv_list and pv_con_list
 	for(i=0; i < 2; i++) {
 		tsDLHashList<gatePvNode> *list;
-		if(i == 0) list=&pv_list;
-		else list=&pv_con_list;
+        epicsMutex* lock;
+		if(i == 0) { list=&pv_list; lock=&pv_list_mutex; }
+		else { list=&pv_con_list; lock=&pv_con_list_mutex; }
+        epicsGuard<epicsMutex> _lock(*lock);
 		tsDLIter<gatePvNode> iter=list->firstIter();
 		while(iter.valid())	{
 			gatePvNode *pNode=iter.pointer();
@@ -1294,6 +1301,7 @@ void gateServer::connectCleanup(void)
 	printf("  pv_list.count()=%d pv_con_list.count()=%d\n",
 	  pv_list.count(),pv_con_list.count());
 #endif
+    epicsGuard<epicsMutex> _lock(pv_con_list_mutex);
 	tsDLIter<gatePvNode> iter=pv_con_list.firstIter();
 	gatePvNode *pNode;
 	while(iter.valid())
@@ -1367,6 +1375,7 @@ void gateServer::inactiveDeadCleanup(void)
 	int ifirst=1;
 #endif
 
+    epicsGuard<epicsMutex> _lock(pv_list_mutex);
 	tsDLIter<gatePvNode> iter=pv_list.firstIter();
 	gatePvNode *pNode;
 	while(iter.valid())

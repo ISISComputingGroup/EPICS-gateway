@@ -966,7 +966,7 @@ int gatePvData::get(readType read_type)
 					  	"for %s.\n"
                         "Set EPICS_CA_MAX_ARRAY_BYTES to at least %lu\n",
                         timeStamp(),name()?name():"Unknown",
-                              (unsigned long) bytes*totalElements() + sizeof(caHdr) + 2*sizeof(ca_uint32_t));
+                              (unsigned long)(bytes*totalElements() + sizeof(caHdr) + 2*sizeof(ca_uint32_t)));
 					}
 				}
 			}
@@ -991,7 +991,7 @@ int gatePvData::get(readType read_type)
 					  	"for %s.\n"
                         "Set EPICS_CA_MAX_ARRAY_BYTES to at least %lu\n",
                         timeStamp(),name()?name():"Unknown",
-                              (unsigned long) bytes*totalElements() + sizeof(caHdr) + 2*sizeof(ca_uint32_t));
+                              (unsigned long)(bytes*totalElements() + sizeof(caHdr) + 2*sizeof(ca_uint32_t)));
 					}
 				}
 			}
