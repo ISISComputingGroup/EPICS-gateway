@@ -325,6 +325,19 @@ static void sig_end(int sig)
 		  timeStamp());
 		if(save_segv) save_segv(sig);
 		abort();
+
+	case SIGABRT:
+#ifdef USE_SYSLOG
+		syslog(LOG_NOTICE|LOG_DAEMON,"PV Gateway Aborting (SIGABRT)");
+#endif
+		fprintf(stderr,"%s PV Gateway Aborting (SIGABRT)\n",
+		  timeStamp());
+#ifdef _WIN32
+        TerminateProcess(GetCurrentProcess(), 1);
+#else
+        _exit(1);
+#endif
+
 	default:
 #ifdef USE_SYSLOG
 		syslog(LOG_NOTICE|LOG_DAEMON,"PV Gateway Exiting (Unknown Signal)");
@@ -579,6 +592,8 @@ static int startEverything(char *prefix)
 #ifndef _WIN32
 	save_hup=signal(SIGHUP,sig_end);
 	save_bus=signal(SIGBUS,sig_end);
+#else
+    signal(SIGABRT,sig_end);
 #endif
 	save_term=signal(SIGTERM,sig_end);
 	save_int=signal(SIGINT,sig_end);
