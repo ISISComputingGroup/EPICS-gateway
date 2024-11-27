@@ -264,6 +264,7 @@ static SIG_FUNC save_hup = NULL;
 static SIG_FUNC save_int = NULL;
 static SIG_FUNC save_term = NULL;
 static SIG_FUNC save_bus = NULL;
+static SIG_FUNC save_abrt = NULL;
 static SIG_FUNC save_ill = NULL;
 static SIG_FUNC save_segv = NULL;
 static SIG_FUNC save_chld = NULL;
@@ -325,6 +326,24 @@ static void sig_end(int sig)
 		  timeStamp());
 		if(save_segv) save_segv(sig);
 		abort();
+
+	case SIGABRT:
+#ifdef USE_SYSLOG
+		syslog(LOG_NOTICE|LOG_DAEMON,"PV Gateway Aborting (SIGABRT)");
+#endif
+		fprintf(stderr,"%s PV Gateway Aborting (SIGABRT)\n",
+		  timeStamp());
+#ifdef _WIN32
+        // terminate as quickly as possible, we have had hangs on some
+        // exits and Windows docs suggest that some DLL exit handlers may
+        // get called during normal exit so use TerminateProcess() to be
+        // as clean and minimal as possible
+        TerminateProcess(GetCurrentProcess(), 1);
+#else
+        if(save_abrt) save_abrt(sig);
+        _exit(1);
+#endif //#ifdef _WIN32
+
 	default:
 #ifdef USE_SYSLOG
 		syslog(LOG_NOTICE|LOG_DAEMON,"PV Gateway Exiting (Unknown Signal)");
@@ -580,6 +599,7 @@ static int startEverything(char *prefix)
 	save_hup=signal(SIGHUP,sig_end);
 	save_bus=signal(SIGBUS,sig_end);
 #endif
+	save_abrt=signal(SIGABRT,sig_end);
 	save_term=signal(SIGTERM,sig_end);
 	save_int=signal(SIGINT,sig_end);
 	save_ill=signal(SIGILL,sig_end);
